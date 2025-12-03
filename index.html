@@ -4,30 +4,30 @@
 <meta charset="UTF-8">
 <title>Amigo Bicho</title>
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background: #f4f4f4;
-        padding: 20px;
-    }
-    .caixa {
-        background: white;
-        padding: 20px;
-        border-radius: 10px;
-        max-width: 350px;
-        margin: auto;
-        box-shadow: 0 0 10px #aaa;
-    }
-    select, button {
-        width: 100%;
-        padding: 12px;
-        font-size: 18px;
-        margin-top: 10px;
-    }
-    #resultado {
-        margin-top: 20px;
-        font-size: 22px;
-        font-weight: bold;
-    }
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f4f4;
+    padding: 20px;
+}
+.caixa {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 350px;
+    margin: auto;
+    box-shadow: 0 0 10px #aaa;
+}
+select, button {
+    width: 100%;
+    padding: 12px;
+    font-size: 18px;
+    margin-top: 10px;
+}
+#resultado {
+    margin-top: 20px;
+    font-size: 22px;
+    font-weight: bold;
+}
 </style>
 </head>
 <body>
@@ -45,25 +45,38 @@
 </div>
 
 <script>
-// Dicionário com os pares
+// Objeto com IDs internas (sem acento) → bicho
 const nomesParaBichos = {
-    "Caio": "Anta",
-    "Lorraine": "Tilápia",
-    "Iza": "Rola",
-    "Dione": "Piranha",
-    "Gabi": "Jumento",
-    "Richard": "Lacraia",
-    "Letícia": "Veado",
-    "Ítalo": "Muriçoca",
-    "Emille": "Periquito"
+    "caio": "Anta",
+    "lorraine": "Tilápia",
+    "iza": "Rola",
+    "dione": "Piranha",
+    "gabi": "Jumento",
+    "richard": "Lacraia",
+    "leticia": "Veado",
+    "italo": "Muriçoca",
+    "emille": "Periquito"
+};
+
+// Map para mostrar nomes com acento no select
+const nomesComAcento = {
+    "caio": "Caio",
+    "lorraine": "Lorraine",
+    "iza": "Iza",
+    "dione": "Dione",
+    "gabi": "Gabi",
+    "richard": "Richard",
+    "leticia": "Letícia",
+    "italo": "Ítalo",
+    "emille": "Emille"
 };
 
 // Preencher select
 const select = document.getElementById("nomeSelect");
-Object.keys(nomesParaBichos).forEach(nome => {
+Object.keys(nomesParaBichos).forEach(id => {
     const op = document.createElement("option");
-    op.value = nome;
-    op.textContent = nome;
+    op.value = id; // ID sem acento
+    op.textContent = nomesComAcento[id]; // Texto com acento
     select.appendChild(op);
 });
 
@@ -73,27 +86,24 @@ function mostrarResultadoSalvo() {
     const bichoTravado = localStorage.getItem("bicho_escolhido");
 
     if (nomeTravado && bichoTravado) {
-        select.innerHTML = `<option value="${nomeTravado}">${nomeTravado}</option>`;
+        select.innerHTML = `<option value="${nomeTravado}">${nomesComAcento[nomeTravado]}</option>`;
         select.disabled = true;
         document.getElementById("resultado").textContent =
             `Seu bicho é: ${bichoTravado}`;
     }
 }
-
-// Chamar ao carregar
 mostrarResultadoSalvo();
 
-// Função para gerar bicho
+// Função gerar bicho
 function gerarBicho() {
-    const nome = select.value;
+    const id = select.value;
     const resultado = document.getElementById("resultado");
 
-    if (!nome) {
+    if (!id) {
         resultado.textContent = "Selecione seu nome!";
         return;
     }
 
-    // Ler novamente do localStorage para ver se já existe
     const nomeTravado = localStorage.getItem("nome_escolhido");
     const bichoTravado = localStorage.getItem("bicho_escolhido");
 
@@ -102,14 +112,12 @@ function gerarBicho() {
         return;
     }
 
-    const bicho = nomesParaBichos[nome];
+    const bicho = nomesParaBichos[id];
 
-    // Salvar no localStorage
-    localStorage.setItem("nome_escolhido", nome);
+    localStorage.setItem("nome_escolhido", id);
     localStorage.setItem("bicho_escolhido", bicho);
 
-    // Travar select
-    select.innerHTML = `<option value="${nome}">${nome}</option>`;
+    select.innerHTML = `<option value="${id}">${nomesComAcento[id]}</option>`;
     select.disabled = true;
 
     resultado.textContent = `Seu bicho é: ${bicho}`;
