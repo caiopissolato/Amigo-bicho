@@ -1,146 +1,145 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <title>Amigo Bicho</title>
+
 <style>
-    body { font-family: Arial; padding: 20px; }
-    .container { max-width: 400px; margin: auto; }
+    body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        background: #f4f4f4;
+    }
     select, button {
-        width: 100%;
         padding: 12px;
-        margin-top: 10px;
         font-size: 18px;
+        margin-top: 10px;
     }
     #resultado {
-        margin-top: 25px;
+        margin-top: 20px;
         font-size: 22px;
         font-weight: bold;
+        padding: 15px;
+        background: white;
+        border-radius: 10px;
     }
 </style>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js"></script>
+
 </head>
 <body>
 
-<div class="container">
-    <h2>Quem é você?</h2>
+<h2>Escolha seu nome</h2>
 
-    <select id="nomeSelect">
-        <option value="">Selecione seu nome</option>
-    </select>
+<select id="nomeSelect">
+    <option value="">Selecione...</option>
+</select>
 
-    <button onclick="gerarBicho()">Quero meu bicho</button>
+<br><br>
 
-    <p id="resultado"></p>
-</div>
+<button onclick="gerarBicho()">Quero meu bicho</button>
+
+<div id="resultado"></div>
 
 <script>
-// LISTA 1 (nomes)
-const listaNomes = [
-    "Caio",
-    "Lorraine",
-    "Iza",
-    "Dione",
-    "Gabi",
-    "Richard",
-    "Letícia",
-    "Ítalo",
-    "Emille"
-];
-
-// LISTA 2 (bichos)
-const listaBichos = [
-    "Anta",
-    "Tilápia",
-    "Rola",
-    "Panda",
-    "Jumento",
-    "Lacraia",
-    "Porco",
-    "Urso",
-    "Urubu"
-];
-
-// Carrega nomes no select ao abrir
-window.onload = function () {
-    const select = document.getElementById("nomeSelect");
-
-    // Se o usuário já escolheu um nome anteriormente, bloquear o select
-    const nomeTravado = localStorage.getItem("nome_escolhido");
-
-    if (nomeTravado) {
-        // Coloca esse nome no select e trava
-        const option = document.createElement("option");
-        option.value = nomeTravado;
-        option.textContent = nomeTravado;
-        select.innerHTML = "";
-        select.appendChild(option);
-        select.disabled = true;
-
-        // Se já tinha bicho também, mostrar automaticamente
-        const bichoSalvo = localStorage.getItem("bicho_" + nomeTravado);
-        if (bichoSalvo) {
-            document.getElementById("resultado").textContent =
-                "Seu bicho é: " + bichoSalvo;
-        }
-
-        return;
-    }
-
-    // Se ainda não escolheu, carrega a lista normalmente
-    listaNomes.forEach(nome => {
-        const option = document.createElement("option");
-        option.value = nome;
-        option.textContent = nome;
-        select.appendChild(option);
-    });
+// =======================
+// 📌 Firebase
+// =======================
+const firebaseConfig = {
+  apiKey: "AIzaSyA0zYMXJSCbZ5G85kW_LZY2RyXMAm0yxm8",
+  authDomain: "amigo-bicho.firebaseapp.com",
+  projectId: "amigo-bicho",
+  storageBucket: "amigo-bicho.firebasestorage.app",
+  messagingSenderId: "540631256970",
+  appId: "1:540631256970:web:bf3ce03155bffffdbcc273"
 };
 
-// Função para sortear e mostrar o bicho
-function gerarBicho() {
-    const select = document.getElementById("nomeSelect");
+const app = firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+
+// =======================
+// 📌 LISTAS CORRETAS (as que você passou!)
+// =======================
+const listaNomes = [
+  "Caio", "Lorraine", "Iza", "Dione", "Gabi",
+  "Richard", "Letícia", "Ítalo", "Emille"
+];
+
+const listaBichos = [
+  "Anta", "Tilápia", "Rola", "Panda", "Jumento",
+  "Lacraia", "Porco", "Urso", "Urubu"
+];
+
+
+// =======================
+// 📌 Preenche o select com os nomes
+// =======================
+const select = document.getElementById("nomeSelect");
+
+listaNomes.forEach(nome => {
+    const opt = document.createElement("option");
+    opt.value = nome;
+    opt.textContent = nome;
+    select.appendChild(opt);
+});
+
+
+// =======================
+// 📌 BLOQUEIO POR DISPOSITIVO
+// =======================
+function dispositivoJaUsou() {
+    return localStorage.getItem("bloqueado") === "1";
+}
+
+function bloquearDispositivo() {
+    localStorage.setItem("bloqueado", "1");
+}
+
+
+// =======================
+// 📌 FUNÇÃO PRINCIPAL
+// =======================
+async function gerarBicho() {
     const nome = select.value;
     const resultado = document.getElementById("resultado");
 
     if (!nome) {
-        resultado.textContent = "Selecione seu nome primeiro!";
+        resultado.textContent = "Selecione seu nome!";
         return;
     }
 
-    // Se nunca salvou o nome antes, SALVAR agora e travar para sempre
-    if (!localStorage.getItem("nome_escolhido")) {
-        localStorage.setItem("nome_escolhido", nome);
-        select.disabled = true;
-    }
-
-    // Verifica se já tem bicho salvo
-    const chavePessoa = "bicho_" + nome;
-    const bichoExistente = localStorage.getItem(chavePessoa);
-
-    if (bichoExistente) {
-        resultado.textContent = "Seu bicho é: " + bichoExistente;
+    // Bloqueio: dispositivo só pode usar 1 vez
+    if (dispositivoJaUsou()) {
+        resultado.textContent = "Este dispositivo já gerou um bicho e não pode gerar outro!";
         return;
     }
 
-    // Verifica bichos já usados
-    let usados = JSON.parse(localStorage.getItem("bichos_usados") || "[]");
+    // Verificar no Firebase se o nome já tem bicho
+    const ref = db.collection("bichos").doc(nome);
+    const snap = await ref.get();
 
-    const disponiveis = listaBichos.filter(bicho => !usados.includes(bicho));
-
-    if (disponiveis.length === 0) {
-        resultado.textContent = "Todos os bichos já foram sorteados!";
+    if (snap.exists) {
+        const bicho = snap.data().bicho;
+        resultado.textContent = `${nome}, seu bicho é: ${bicho}`;
+        bloquearDispositivo();
         return;
     }
 
-    // Sorteia um bicho
-    const sorteado = disponiveis[Math.floor(Math.random() * disponiveis.length)];
+    // Sortear bicho novo
+    const bichoSorteado = listaBichos[Math.floor(Math.random() * listaBichos.length)];
 
-    // Salva nos registros
-    usados.push(sorteado);
-    localStorage.setItem("bichos_usados", JSON.stringify(usados));
-    localStorage.setItem(chavePessoa, sorteado);
+    // Salvar no Firebase
+    await ref.set({ bicho: bichoSorteado });
 
-    resultado.textContent = "Seu bicho é: " + sorteado;
+    resultado.textContent = `${nome}, seu bicho é: ${bichoSorteado}`;
+
+    bloquearDispositivo();
 }
+
 </script>
 
 </body>
