@@ -14,6 +14,7 @@
         padding: 12px;
         font-size: 18px;
         margin-top: 10px;
+        width: 250px;
     }
     #resultado {
         margin-top: 20px;
@@ -25,9 +26,9 @@
     }
 </style>
 
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js"></script>
+<!-- Firebase compat (suporta HTML puro) -->
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
 
 </head>
 <body>
@@ -46,7 +47,7 @@
 
 <script>
 // =======================
-// 📌 Firebase
+// 📌 Firebase compatível com HTML puro
 // =======================
 const firebaseConfig = {
   apiKey: "AIzaSyA0zYMXJSCbZ5G85kW_LZY2RyXMAm0yxm8",
@@ -57,12 +58,12 @@ const firebaseConfig = {
   appId: "1:540631256970:web:bf3ce03155bffffdbcc273"
 };
 
-const app = firebase.initializeApp(firebaseConfig);
+firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
 
 // =======================
-// 📌 LISTAS CORRETAS (as que você passou!)
+// 📌 LISTAS CORRETAS
 // =======================
 const listaNomes = [
   "Caio", "Lorraine", "Iza", "Dione", "Gabi",
@@ -76,7 +77,7 @@ const listaBichos = [
 
 
 // =======================
-// 📌 Preenche o select com os nomes
+// 📌 Preencher select
 // =======================
 const select = document.getElementById("nomeSelect");
 
@@ -118,7 +119,7 @@ async function gerarBicho() {
         return;
     }
 
-    // Verificar no Firebase se o nome já tem bicho
+    // Verificar se nome já tem bicho
     const ref = db.collection("bichos").doc(nome);
     const snap = await ref.get();
 
@@ -129,7 +130,7 @@ async function gerarBicho() {
         return;
     }
 
-    // Sortear bicho novo
+    // Sortear bicho
     const bichoSorteado = listaBichos[Math.floor(Math.random() * listaBichos.length)];
 
     // Salvar no Firebase
