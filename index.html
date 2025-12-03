@@ -45,7 +45,7 @@
 </div>
 
 <script>
-// Dicionário (objeto) mapeando cada nome ao seu bicho
+// Dicionário com os pares
 const nomesParaBichos = {
     "Caio": "Anta",
     "Lorraine": "Tilápia",
@@ -58,7 +58,7 @@ const nomesParaBichos = {
     "Emille": "Periquito"
 };
 
-// Preencher select com nomes
+// Preencher select
 const select = document.getElementById("nomeSelect");
 Object.keys(nomesParaBichos).forEach(nome => {
     const op = document.createElement("option");
@@ -67,17 +67,21 @@ Object.keys(nomesParaBichos).forEach(nome => {
     select.appendChild(op);
 });
 
-// Verifica se já gerou antes neste dispositivo
-const nomeTravado = localStorage.getItem("nome_escolhido");
-const bichoTravado = localStorage.getItem("bicho_escolhido");
+// Mostrar resultado se já existe
+function mostrarResultadoSalvo() {
+    const nomeTravado = localStorage.getItem("nome_escolhido");
+    const bichoTravado = localStorage.getItem("bicho_escolhido");
 
-// Se já existe, travar select e mostrar resultado
-if (nomeTravado && bichoTravado) {
-    select.innerHTML = `<option value="${nomeTravado}">${nomeTravado}</option>`;
-    select.disabled = true;
-    document.getElementById("resultado").textContent =
-        `Seu bicho é: ${bichoTravado}`;
+    if (nomeTravado && bichoTravado) {
+        select.innerHTML = `<option value="${nomeTravado}">${nomeTravado}</option>`;
+        select.disabled = true;
+        document.getElementById("resultado").textContent =
+            `Seu bicho é: ${bichoTravado}`;
+    }
 }
+
+// Chamar ao carregar
+mostrarResultadoSalvo();
 
 // Função para gerar bicho
 function gerarBicho() {
@@ -89,16 +93,18 @@ function gerarBicho() {
         return;
     }
 
-    // Se já gerou antes no dispositivo, só mostrar
+    // Ler novamente do localStorage para ver se já existe
+    const nomeTravado = localStorage.getItem("nome_escolhido");
+    const bichoTravado = localStorage.getItem("bicho_escolhido");
+
     if (nomeTravado && bichoTravado) {
         resultado.textContent = `Seu bicho é: ${bichoTravado}`;
         return;
     }
 
-    // Buscar o bicho do dicionário
     const bicho = nomesParaBichos[nome];
 
-    // Salvar no dispositivo
+    // Salvar no localStorage
     localStorage.setItem("nome_escolhido", nome);
     localStorage.setItem("bicho_escolhido", bicho);
 
@@ -106,7 +112,6 @@ function gerarBicho() {
     select.innerHTML = `<option value="${nome}">${nome}</option>`;
     select.disabled = true;
 
-    // Mostrar resultado
     resultado.textContent = `Seu bicho é: ${bicho}`;
 }
 </script>
