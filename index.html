@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Amigo Bicho</title>
+<style>
+    body { font-family: Arial; padding: 20px; }
+    .container { max-width: 400px; margin: auto; }
+    select, button {
+        width: 100%;
+        padding: 12px;
+        margin-top: 10px;
+        font-size: 18px;
+    }
+    #resultado {
+        margin-top: 25px;
+        font-size: 22px;
+        font-weight: bold;
+    }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Quem é você?</h2>
+
+    <select id="nomeSelect">
+        <option value="">Selecione seu nome</option>
+    </select>
+
+    <button onclick="gerarBicho()">Quero meu bicho</button>
+
+    <p id="resultado"></p>
+</div>
+
+<script>
+// LISTA 1 (nomes)
+const listaNomes = [
+    "Caio",
+    "Lorraine",
+    "Iza",
+    "Dione",
+    "Gabi",
+    "Richard",
+    "Letícia",
+    "Ítalo",
+    "Emille"
+];
+
+// LISTA 2 (bichos)
+const listaBichos = [
+    "Anta",
+    "Tilápia",
+    "Rola",
+    "Panda",
+    "Jumento",
+    "Lacraia",
+    "Porco",
+    "Urso",
+    "Urubu"
+];
+
+// Carrega nomes no select ao abrir
+window.onload = function () {
+    const select = document.getElementById("nomeSelect");
+
+    // Se o usuário já escolheu um nome anteriormente, bloquear o select
+    const nomeTravado = localStorage.getItem("nome_escolhido");
+
+    if (nomeTravado) {
+        // Coloca esse nome no select e trava
+        const option = document.createElement("option");
+        option.value = nomeTravado;
+        option.textContent = nomeTravado;
+        select.innerHTML = "";
+        select.appendChild(option);
+        select.disabled = true;
+
+        // Se já tinha bicho também, mostrar automaticamente
+        const bichoSalvo = localStorage.getItem("bicho_" + nomeTravado);
+        if (bichoSalvo) {
+            document.getElementById("resultado").textContent =
+                "Seu bicho é: " + bichoSalvo;
+        }
+
+        return;
+    }
+
+    // Se ainda não escolheu, carrega a lista normalmente
+    listaNomes.forEach(nome => {
+        const option = document.createElement("option");
+        option.value = nome;
+        option.textContent = nome;
+        select.appendChild(option);
+    });
+};
+
+// Função para sortear e mostrar o bicho
+function gerarBicho() {
+    const select = document.getElementById("nomeSelect");
+    const nome = select.value;
+    const resultado = document.getElementById("resultado");
+
+    if (!nome) {
+        resultado.textContent = "Selecione seu nome primeiro!";
+        return;
+    }
+
+    // Se nunca salvou o nome antes, SALVAR agora e travar para sempre
+    if (!localStorage.getItem("nome_escolhido")) {
+        localStorage.setItem("nome_escolhido", nome);
+        select.disabled = true;
+    }
+
+    // Verifica se já tem bicho salvo
+    const chavePessoa = "bicho_" + nome;
+    const bichoExistente = localStorage.getItem(chavePessoa);
+
+    if (bichoExistente) {
+        resultado.textContent = "Seu bicho é: " + bichoExistente;
+        return;
+    }
+
+    // Verifica bichos já usados
+    let usados = JSON.parse(localStorage.getItem("bichos_usados") || "[]");
+
+    const disponiveis = listaBichos.filter(bicho => !usados.includes(bicho));
+
+    if (disponiveis.length === 0) {
+        resultado.textContent = "Todos os bichos já foram sorteados!";
+        return;
+    }
+
+    // Sorteia um bicho
+    const sorteado = disponiveis[Math.floor(Math.random() * disponiveis.length)];
+
+    // Salva nos registros
+    usados.push(sorteado);
+    localStorage.setItem("bichos_usados", JSON.stringify(usados));
+    localStorage.setItem(chavePessoa, sorteado);
+
+    resultado.textContent = "Seu bicho é: " + sorteado;
+}
+</script>
+
+</body>
+</html>
