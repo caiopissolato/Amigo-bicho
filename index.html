@@ -3,108 +3,84 @@
 <head>
 <meta charset="UTF-8">
 <title>Amigo Bicho</title>
-
 <style>
     body {
         font-family: Arial, sans-serif;
-        padding: 20px;
         background: #f4f4f4;
+        padding: 20px;
+    }
+    .caixa {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 350px;
+        margin: auto;
+        box-shadow: 0 0 10px #aaa;
     }
     select, button {
+        width: 100%;
         padding: 12px;
         font-size: 18px;
         margin-top: 10px;
-        width: 250px;
     }
     #resultado {
         margin-top: 20px;
         font-size: 22px;
         font-weight: bold;
-        padding: 15px;
-        background: white;
-        border-radius: 10px;
     }
 </style>
-
-<!-- Firebase compat (suporta HTML puro) -->
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
-
 </head>
 <body>
 
-<h2>Escolha seu nome</h2>
+<div class="caixa">
+    <h2>Quem é você?</h2>
 
-<select id="nomeSelect">
-    <option value="">Selecione...</option>
-</select>
+    <select id="nomeSelect">
+        <option value="">Selecione...</option>
+    </select>
 
-<br><br>
+    <button onclick="gerarBicho()">Quero meu bicho</button>
 
-<button onclick="gerarBicho()">Quero meu bicho</button>
-
-<div id="resultado"></div>
+    <p id="resultado"></p>
+</div>
 
 <script>
-// =======================
-// 📌 Firebase compatível com HTML puro
-// =======================
-const firebaseConfig = {
-  apiKey: "AIzaSyA0zYMXJSCbZ5G85kW_LZY2RyXMAm0yxm8",
-  authDomain: "amigo-bicho.firebaseapp.com",
-  projectId: "amigo-bicho",
-  storageBucket: "amigo-bicho.firebasestorage.app",
-  messagingSenderId: "540631256970",
-  appId: "1:540631256970:web:bf3ce03155bffffdbcc273"
+// Dicionário (objeto) mapeando cada nome ao seu bicho
+const nomesParaBichos = {
+    "Caio": "Anta",
+    "Lorraine": "Tilápia",
+    "Iza": "Rola",
+    "Dione": "Piranha",
+    "Gabi": "Jumento",
+    "Richard": "Lacraia",
+    "Letícia": "Veado",
+    "Ítalo": "Muriçoca",
+    "Emille": "Periquito"
 };
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
-
-// =======================
-// 📌 LISTAS CORRETAS
-// =======================
-const listaNomes = [
-  "Caio", "Lorraine", "Iza", "Dione", "Gabi",
-  "Richard", "Letícia", "Ítalo", "Emille"
-];
-
-const listaBichos = [
-  "Anta", "Tilápia", "Rola", "Panda", "Jumento",
-  "Lacraia", "Porco", "Urso", "Urubu"
-];
-
-
-// =======================
-// 📌 Preencher select
-// =======================
+// Preencher select com nomes
 const select = document.getElementById("nomeSelect");
-
-listaNomes.forEach(nome => {
-    const opt = document.createElement("option");
-    opt.value = nome;
-    opt.textContent = nome;
-    select.appendChild(opt);
+Object.keys(nomesParaBichos).forEach(nome => {
+    const op = document.createElement("option");
+    op.value = nome;
+    op.textContent = nome;
+    select.appendChild(op);
 });
 
+// Verifica se já gerou antes neste dispositivo
+const nomeTravado = localStorage.getItem("nome_escolhido");
+const bichoTravado = localStorage.getItem("bicho_escolhido");
 
-// =======================
-// 📌 BLOQUEIO POR DISPOSITIVO
-// =======================
-function dispositivoJaUsou() {
-    return localStorage.getItem("bloqueado") === "1";
+// Se já existe, travar select e mostrar resultado
+if (nomeTravado && bichoTravado) {
+    select.innerHTML = `<option value="${nomeTravado}">${nomeTravado}</option>`;
+    select.disabled = true;
+    document.getElementById("resultado").textContent =
+        `Seu bicho é: ${bichoTravado}`;
 }
 
-function bloquearDispositivo() {
-    localStorage.setItem("bloqueado", "1");
-}
-
-
-// =======================
-// 📌 FUNÇÃO PRINCIPAL
-// =======================
-async function gerarBicho() {
+// Função para gerar bicho
+function gerarBicho() {
     const nome = select.value;
     const resultado = document.getElementById("resultado");
 
@@ -113,34 +89,26 @@ async function gerarBicho() {
         return;
     }
 
-    // Bloqueio: dispositivo só pode usar 1 vez
-    if (dispositivoJaUsou()) {
-        resultado.textContent = "Este dispositivo já gerou um bicho e não pode gerar outro!";
+    // Se já gerou antes no dispositivo, só mostrar
+    if (nomeTravado && bichoTravado) {
+        resultado.textContent = `Seu bicho é: ${bichoTravado}`;
         return;
     }
 
-    // Verificar se nome já tem bicho
-    const ref = db.collection("bichos").doc(nome);
-    const snap = await ref.get();
+    // Buscar o bicho do dicionário
+    const bicho = nomesParaBichos[nome];
 
-    if (snap.exists) {
-        const bicho = snap.data().bicho;
-        resultado.textContent = `${nome}, seu bicho é: ${bicho}`;
-        bloquearDispositivo();
-        return;
-    }
+    // Salvar no dispositivo
+    localStorage.setItem("nome_escolhido", nome);
+    localStorage.setItem("bicho_escolhido", bicho);
 
-    // Sortear bicho
-    const bichoSorteado = listaBichos[Math.floor(Math.random() * listaBichos.length)];
+    // Travar select
+    select.innerHTML = `<option value="${nome}">${nome}</option>`;
+    select.disabled = true;
 
-    // Salvar no Firebase
-    await ref.set({ bicho: bichoSorteado });
-
-    resultado.textContent = `${nome}, seu bicho é: ${bichoSorteado}`;
-
-    bloquearDispositivo();
+    // Mostrar resultado
+    resultado.textContent = `Seu bicho é: ${bicho}`;
 }
-
 </script>
 
 </body>
